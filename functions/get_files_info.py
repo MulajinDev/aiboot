@@ -37,5 +37,6 @@ def get_files_info(working_directory, directory="."):
             output += f"- {item}: file_size={size}, is_dir={is_dir}\n"
     except Exception as e:
         return f"Error: {e}"
+    print(output)
     return output
     

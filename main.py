@@ -8,6 +8,7 @@ from functions.get_files_info import *
 from functions.get_file_content import *
 from functions.write_file import *
 from functions.run_python import *
+from functions.call_function import *
 
 def main():
     load_dotenv()
@@ -44,19 +45,40 @@ def main():
         tools=[available_functions],
         system_instruction=SYSTEM_PROMPT
     )
+    
+    max_runs = 20
+    runs = 0
 
-    ai_response = client.models.generate_content(model=AI_MODEL_NAME,contents=messages, config=ai_cfg)
-    ai_calls = ai_response.function_calls
-    if ai_calls:
-        for call in ai_calls:
-            print(f"Calling function: {call.name}({call.args})")
-    else:
-        print(f"Response: {ai_response.text}")
+    while runs < max_runs:
+        runs +=1
+        ai_response = client.models.generate_content(model=AI_MODEL_NAME,contents=messages, config=ai_cfg)
 
-    if verbose:
-        print(f"User prompt: {user_prompt}")
-        print(f"Prompt tokens: {ai_response.usage_metadata.prompt_token_count}")
-        print(f"Response tokens: {ai_response.usage_metadata.candidates_token_count}")
+        if len(ai_response.candidates) > 0 :
+            for candidate in ai_response.candidates:
+                messages.append(candidate.content)
+
+        ai_calls = ai_response.function_calls
+        if ai_calls:
+            for call in ai_calls:
+                print(f"Calling function: {call.name}({call.args})")
+                print(call)
+                result = call_function(call, verbose)
+                if result.parts[0].function_response.response:
+                    if verbose:
+                        print(f"-> {result.parts[0].function_response.response}")
+                else:
+                    raise SystemExit
+        else:
+            print(f"Response: {ai_response.text}")
+            exit(0)
+
+        response_msg = types.Content(role="tool", parts=result.parts)
+        messages.append(response_msg)
+
+        if verbose:
+            print(f"User prompt: {user_prompt}")
+            print(f"Prompt tokens: {ai_response.usage_metadata.prompt_token_count}")
+            print(f"Response tokens: {ai_response.usage_metadata.candidates_token_count}")
 
 
 if __name__ == "__main__":

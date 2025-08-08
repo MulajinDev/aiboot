@@ -26,11 +26,11 @@ def run_python_file(working_directory, file_path, args=[]):
         path = os.path.abspath(os.path.join(working_directory, file_path))
         cwd = os.path.abspath(working_directory)
         if not path.startswith(cwd):
-            return f"Error: Cannot execute \"{file_path}\" as it is outside the permitted working directory"
+            return f"Error: Cannot execute \"{path}\" as it is outside the permitted working directory"
         if not os.path.exists(path):
-            return f"Error: File \"{file_path}\" not found"
+            return f"Error: File \"{path}\" not found"
         if not path.endswith(".py"):
-            return f"Error: \"{file_path}\" is not a Python file"
+            return f"Error: \"{path}\" is not a Python file"
         #if not os.path.isfile(path):
         #    return f"Error: File not found or is not a regular file: \"{file_path}\""
     except Exception as e:
